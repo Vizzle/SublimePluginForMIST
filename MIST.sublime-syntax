@@ -1,0 +1,153 @@
+%YAML1.2
+---
+# See http://www.sublimetext.com/docs/3/syntax.html
+file_extensions: [json, html]
+scope: source.vzt
+contexts:
+  prototype: 
+    - include: comments
+
+  comments:
+    - match: '//'
+      scope: punctuation.definition.comment.line.vzt
+      push: line_comment
+    - match: '/\*'
+      scope: punctuation.definition.comment.block.vzt
+      push: block_comment
+
+  line_comment:
+    - meta_scope: comment.line.vzt
+    - match: $
+      pop: true
+
+  block_comment:
+    - meta_scope: comment.block.vzt
+    - match: '\\*/'
+      pop: true
+
+  value:
+    - meta_scope: value.vzt
+    # null, true, false
+    - match: '\b(null|true|false)\b'
+      scope: constant.language.vzt
+      pop: true
+    # number
+    - match: '-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?'
+      scope: constant.numeric.vzt
+      pop: true
+    - match: '"-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?(%|px|cm|mm|q|in|pc|pt|em|vw|vh|vmin|vmax)?"'
+      scope: constant.numeric.length.vzt
+      pop: true
+    # string
+    - match: '"'
+      scope: punctuation.definition.string.begin.vzt
+      set: string
+    # object
+    - match: '{'
+      scope: punctuation.definition.object.begin.vzt
+      set: object
+    # array
+    - match: '\['
+      scope: punctuation.definition.array.begin.vzt
+      set: array
+    # invalid value
+    - match: '\S'
+      scope: invalid.value.vzt
+
+  string:
+    - meta_include_prototype: false
+    - meta_scope: string.vzt
+    - match: '\\(["\\/bfnrt]|u[a-fA-F0-9]{4})'
+      scope: constant.character.escape.vzt
+    - match: '\\u[^"]{,4}'
+      scope: invalid.constant.character.unicode.escape.vzt
+    - match: '\\.'
+      scope: invalid.constant.character.escape.vzt
+    - match: '\n'
+      scope: invalid.string.vzt
+    - match: '"'
+      scope: punctuation.definition.string.end.vzt
+      pop: true
+    - match: '\$\{'
+      scope: punctuation.definition.expression.begin.vzt
+      push: expression
+
+  expression:
+    - meta_include_prototype: false
+    - meta_scope: constant.other.expression.vzt
+    - match: '{'
+      push: expression_object
+    - match: '}'
+      scope: punctuation.definition.expression.end.vzt
+      pop: true
+    - match: '(?=")'
+      scope: invalid.end.expression.vzt
+      pop: true
+    - match: '\n'
+      scope: invalid.string.vzt
+      pop: true
+
+  expression_object:
+    - match: '}'
+      pop: true
+
+  object:
+    - meta_scope: object.vzt
+    - match: '}'
+      scope: punctuation.definition.object.end.vzt
+      pop: true
+    - include: key_value
+
+  array:
+    - meta_scope: array.vzt
+    - match: '\]'
+      scope: punctuation.definition.array.end.vzt
+      pop: true
+    - match: '(?=\S)'
+      set: [more_value, array_value]
+
+  more_value:
+    - match: '\]'
+      scope: punctuation.definition.array.end.vzt
+      pop: true
+    - match: ','
+      set: [more_value, array_value]
+    - match: '\S'
+      scope: invalid.end.array.vzt
+
+  array_value:
+    - include: value
+    - meta_scope: value.array.vzt
+
+  key_value:
+    - meta_scope: object.vzt
+    - match: '"'
+      set: [more_key_value, object_value, colon, key_string]
+    - match: '\S'
+      scope: invalid.key.vzt
+
+  object_value:
+    - include: value
+    - meta_scope: value.object.vzt
+
+  key_string:
+    - include: string
+    - meta_scope: key.string.vzt
+
+  more_key_value:
+    - match: '}'
+      scope: punctuation.definition.object.end.vzt
+      pop: true
+    - match: ","
+      set: key_value
+    - match: '\S'
+      scope: invalid.end.object.vzt
+
+  colon:
+    - match: ':'
+      pop: true
+    - match: '\S'
+      scope: invalid.colon.vzt
+
+  main:
+    - include: value
