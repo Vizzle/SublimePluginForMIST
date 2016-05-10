@@ -67,15 +67,12 @@ properties = [
     ("page-controll-height",),
     ("page-controll-scale",),
 
-    ("template",),
     ("sectioned",),
     ("native",),
     ("controller",),
 
     ("url",),
-    ("log",),
     ("selector",),
-    ("template",),
 
     ("id",),
     ("seed",),
@@ -143,7 +140,6 @@ class CompletionCommittedCommand(sublime_plugin.TextCommand):
                     point += 2
                 else:
                     return
-                    # view.insert(edit, point + r.endpos, ' ')
             else:
                 view.insert(edit, point, '": ')
                 point += 3
@@ -173,9 +169,9 @@ class VZTemplateAutoComplete(sublime_plugin.EventListener):
     def on_query_completions(self, view, prefix, locations):
         sugs = []
         if view.match_selector(locations[0], "object.vzt"):
-            sugs = [('children []', '"children": [\n\t\\{\n\t\t$0\n\t\\}\n]')] + [('config {}', '"config": \\{\n\t$0\n\\}')] + [('state {}', '"state": \\{\n\t$0\n\\}')] + [('update-state {}', '"update-state": \\{\n\t$0\n\\}')] + [('action {}', '"action": \\{\n\t$0\n\\}')] + [('log {}', '"log": \\{\n\t$0\n\\}')] + [('open-page-log {}', '"open-page-log": \\{\n\t$0\n\\}')] + [(p[0], '"' + p[0]) for p in properties]
+            sugs = [('children []', '"children": [\n\t\\{\n\t\t$0\n\t\\}\n]')] + [('config {}', '"config": \\{\n\t$0\n\\}')] + [('state {}', '"state": \\{\n\t$0\n\\}')] + [('update-state {}', '"update-state": \\{\n\t$0\n\\}')] + [('action {}', '"action": \\{\n\t$0\n\\}')] + [('template {}', '"template": \\{\n\t$0\n\\}')] + [('completion {}', '"completion": \\{\n\t$0\n\\}')] + [('log {}', '"log": \\{\n\t$0\n\\}')] + [('open-page-log {}', '"open-page-log": \\{\n\t$0\n\\}')] + [(p[0], '"' + p[0]) for p in properties]
         elif view.match_selector(locations[0], "key.string.vzt"):
-            sugs = [("children",)] + [("config",)] + [("state",)] + [("update-state",)] + [("action",)] + [("log",)] + [("open-page-log",)] + properties
+            sugs = [("children",)] + [("config",)] + [("state",)] + [("update-state",)] + [("action",)] + [("template",)] + [("completion",)] + [("log",)] + [("open-page-log",)] + properties
         elif view.match_selector(locations[0], "string.vzt"):
             key = self.keyAtPoint(view, locations[0]-len(prefix))
             if key is not None and key in key_values:
