@@ -39,6 +39,7 @@ properties = [
     ("border-color",),
     ("corner-radius",),
     ("background-color",),
+    ("repeat",),
 
     ("text",),
     ("color",),
@@ -55,17 +56,19 @@ properties = [
     ("content-mode",),
 
     ("paging",),
-    ("scroll",),
+    ("scroll-enabled",),
     ("scroll-direction",),
-    ("loop",),
+
+    ("infinite-loop",),
     ("auto-scroll",),
-    ("auto-scroll-time",),
-    ("auto-scroll-animated",),
-    ("page-controll",),
-    ("page-controll-color",),
-    ("page-controll-selected-color",),
-    ("page-controll-height",),
-    ("page-controll-scale",),
+    ("page-control",),
+    ("page-control-color",),
+    ("page-control-selected-color",),
+    ("page-control-margin-left",),
+    ("page-control-margin-right",),
+    ("page-control-margin-top",),
+    ("page-control-margin-bottom",),
+    ("page-control-scale",),
 
     ("sectioned",),
     ("native",),
@@ -104,7 +107,7 @@ key_values = {
     "align-self": ["auto", "stretch", "start", "end", "center"],
     "align-content": ["stretch", "start", "end", "center", "space-between", "space-around"],
     "justify-content": ["start", "end", "center", "space-between", "space-around"],
-    "type": ["node", "stack", "text", "image", "button", "O2OPagingNode"],
+    "type": ["node", "stack", "text", "image", "button", "scroll", "paging"],
     "width": ["auto"],
     "height": ["auto"],
     "margin": ["auto"],
@@ -115,11 +118,13 @@ key_values = {
     "background-color": colors,
     "border-color": colors,
     "color": colors,
+    "page-control-color": colors,
+    "page-control-selected-color": colors,
     "alignment": ["natural", "justify", "left", "center", "right"],
     "line-break-mode": ["word", "char", "clip", "truncating-head", "truncating-middle", "truncating-tail"],
     "content-mode": ["center", "scale-to-fill", "scale-aspect-fit", "scale-aspect-fill"],
     "font-style": ["normal", "bold", "italic", "bold-italic"],
-    "scroll-direction": ["horizontal", "vertical"]
+    "scroll-direction": ["none", "horizontal", "vertical", "both"]
 }
 
 class CompletionCommittedCommand(sublime_plugin.TextCommand):
@@ -169,7 +174,7 @@ class VZTemplateAutoComplete(sublime_plugin.EventListener):
     def on_query_completions(self, view, prefix, locations):
         sugs = []
         if view.match_selector(locations[0], "object.vzt"):
-            sugs = [('children []', '"children": [\n\t\\{\n\t\t$0\n\t\\}\n]')] + [('config {}', '"config": \\{\n\t$0\n\\}')] + [('state {}', '"state": \\{\n\t$0\n\\}')] + [('update-state {}', '"update-state": \\{\n\t$0\n\\}')] + [('action {}', '"action": \\{\n\t$0\n\\}')] + [('template {}', '"template": \\{\n\t$0\n\\}')] + [('completion {}', '"completion": \\{\n\t$0\n\\}')] + [('log {}', '"log": \\{\n\t$0\n\\}')] + [('open-page-log {}', '"open-page-log": \\{\n\t$0\n\\}')] + [(p[0], '"' + p[0]) for p in properties]
+            sugs = [('children []', '"children": [\n\t\\{\n\t\t$0\n\t\\}\n]')] + [('config {}', '"config": \\{\n\t$0\n\\}')] + [('state {}', '"state": \\{\n\t$0\n\\}')] + [('update-state {}', '"update-state": \\{\n\t$0\n\\}')] + [('action {}', '"action": \\{\n\t$0\n\\}')] + [('template {}', '"template": \\{\n\t$0\n\\}')] + [('completion {}', '"completion": \\{\n\t$0\n\\}')] + [('log {}', '"log": \\{\n\t$0\n\\}')] + [('open-page-log {}', '"open-page-log": \\{\n\t$0\n\\}')] + [('vars {}', '"vars": \\{\n\t$0\n\\}')] + [(p[0], '"' + p[0]) for p in properties]
         elif view.match_selector(locations[0], "key.string.vzt"):
             sugs = [("children",)] + [("config",)] + [("state",)] + [("update-state",)] + [("action",)] + [("template",)] + [("completion",)] + [("log",)] + [("open-page-log",)] + properties
         elif view.match_selector(locations[0], "string.vzt"):
