@@ -76,6 +76,7 @@ properties = [
 
     ("url",),
     ("selector",),
+    ("condition",),
 
     ("id",),
     ("seed",),
