@@ -18,6 +18,15 @@ Sublime Text 3 (>=3092) was required.
 1. Click the `Preferences > Browse Packages…` menu, it will open the `Packages/` folder.
 2. `git clone` or download this repository to the `Packages/` folder.
 
+# Update
+
+#### Package Control
+1. Open the `Command Palette`.
+2. Type `upgrade`, and select `Package Control: Upgrade Package` command.
+
+#### Manual Installation
+`git pull` or re-download.
+
 # Usage
 
 Before editing MIST template file, click the `View > Syntax` menu and select `MIST`.
