@@ -31,6 +31,4 @@ Sublime Text 3 (>=3092) was required.
 
 Before editing MIST template file, click the `View > Syntax` menu and select `MIST`.
 
-# Issues
-
-- If you want to type symbols(like `#` or `$`) in string value, you might need to press `esc` to close the `auto-completion` panel.
+For more details, [click here](http://idoc.alipay.net/KB.iOS/MIST_doc/plugin.html).

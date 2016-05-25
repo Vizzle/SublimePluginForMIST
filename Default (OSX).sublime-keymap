@@ -1,0 +1,11 @@
+[
+    {
+        "keys": ["super+shift+,"],
+        "command": "mist_switch"
+    },
+    {
+        "keys": ["super+shift+l"],
+        "command": "mist_switch",
+        "args": { "is_list": true }
+    }
+]

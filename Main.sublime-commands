@@ -1,0 +1,4 @@
+[
+    { "caption": "MIST: Switch To Data/Template", "command": "mist_switch" },
+    { "caption": "MIST: List All Templates", "command": "mist_switch", "args": { "is_list": true } }
+]
