@@ -69,7 +69,7 @@ key_values = {
     "repeat": PropertyType.Number,
     "vars": PropertyType.Map,
     "open-page-log": PropertyType.Map,
-    "action": PropertyType.Map,
+    "action": ('action', '{$0}'),
     "completion": PropertyType.Map,
     "log": PropertyType.Map,
     "update-state": PropertyType.Map,
@@ -81,8 +81,8 @@ key_values = {
     "id": PropertyType.Text,
     "seed": PropertyType.Text,
     "params": PropertyType.Array,
-    "action": ["clicked", "openPage"],
-    "children": ('children []', '"children": [\n\t\\{\n\t\t$0\n\t\\}\n]'),
+    "action-id": ["clicked", "openPage"],
+    "children": ('children []', '[\n\t\\{\n\t\t$0\n\t\\}\n]'),
 
     "text": PropertyType.Text,
     "color": colors,
@@ -136,11 +136,23 @@ class CompletionCommittedCommand(sublime_plugin.TextCommand):
                 view.insert(edit, point, '": ')
                 point += 3
 
-            if key in key_values and (key_values[key] == PropertyType.Text or len(key_values[key]) > 1):
-                view.insert(edit, point, '""')
-                point += 1
             view.sel().clear()
             view.sel().add(sublime.Region(point, point))
+
+            if key in key_values:
+                value = key_values[key]
+                snippet = None
+                if isinstance(value, tuple) and len(value) >= 2:
+                    snippet = value[1]
+                elif value == PropertyType.Map:
+                    snippet = '{\n\t$0\n}'
+                elif value == PropertyType.Array:
+                    snippet = '[$0]'
+                elif value == PropertyType.Text or isinstance(value, list) and len(value) > 1:
+                    snippet = '"$0"'
+
+                if snippet is not None:
+                    view.run_command('insert_snippet', { 'contents': snippet })
         elif view.match_selector(point, "string.vzt"):
             if view.substr(point) == '"':
                 point += 1
@@ -161,15 +173,15 @@ class VZTemplateAutoComplete(sublime_plugin.EventListener):
     def on_query_completions(self, view, prefix, locations):
         sugs = []
         if view.match_selector(locations[0], "object.vzt"):
-            sugs = [key_values[p] if isinstance(key_values[p], tuple) else ('%s {}' % p, '"%s": \\{\n\t$0\n\\}' % p) if key_values[p] == PropertyType.Map else ('%s []' % p, '"%s": [ $0 ]' % p) if key_values[p] == PropertyType.Array else (p, '"' + p) for p in key_values]
+            sugs = [(key_values[p][0] if isinstance(key_values[p], tuple) else p, '"' + p) for p in key_values]
         elif view.match_selector(locations[0], "key.string.vzt"):
             sugs = [(p,) for p in key_values]
         elif view.match_selector(locations[0], "string.vzt"):
             key = self.keyAtPoint(view, locations[0]-len(prefix))
             if key is not None and key in key_values:
-                values = key_values[key]
-                if isinstance(values, list):
-                    sugs = [(p,) for p in values]
+                value = key_values[key]
+                if isinstance(value, list):
+                    sugs = [(p,) for p in value]
         elif view.match_selector(locations[0], "value.object.vzt"):
             sugs = []
 
