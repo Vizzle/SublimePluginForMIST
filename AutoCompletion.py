@@ -21,6 +21,8 @@ colors = [
     "transparent"
 ]
 
+image_snippet = '"${1/([^$].*)|(.*)/(?1:O2O.bundle\/)/}${1:name}"$0'
+
 key_values = {
     "sectioned": PropertyType.Bool,
     "native": PropertyType.Text,
@@ -82,7 +84,7 @@ key_values = {
     "seed": PropertyType.Text,
     "params": PropertyType.Array,
     "action-id": ["clicked", "openPage"],
-    "children": ('children []', '[\n\t\\{\n\t\t$0\n\t\\}\n]'),
+    "children": ('children []', '[\n\t{\n\t\t$0\n\t}\n]'),
 
     "text": PropertyType.Text,
     "color": colors,
@@ -93,10 +95,10 @@ key_values = {
     "line-break-mode": ["word", "char", "clip", "truncating-head", "truncating-middle", "truncating-tail"],
     "lines": PropertyType.Number,
 
-    "image": PropertyType.Text,
+    "image": ('image', image_snippet),
     "image-url": PropertyType.Text,
-    "error-image": PropertyType.Text,
-    "content-mode": ["center", "scale-to-fill", "scale-aspect-fit", "scale-aspect-fill"],
+    "error-image": ('error-image', image_snippet),
+    "content-mode": ["center", "top", "bottom", "left", "right", "top-left", "top-right", "bottom-left", "bottom-right", "scale-to-fill", "scale-aspect-fit", "scale-aspect-fill"],
 
     "paging": PropertyType.Bool,
     "scroll-enabled": PropertyType.Bool,
@@ -171,6 +173,9 @@ class VZTemplateAutoComplete(sublime_plugin.EventListener):
         return None
 
     def on_query_completions(self, view, prefix, locations):
+        if not view.match_selector(0, "source.vzt"):
+            return
+
         sugs = []
         if view.match_selector(locations[0], "object.vzt"):
             sugs = [(key_values[p][0] if isinstance(key_values[p], tuple) else p, '"' + p) for p in key_values]
@@ -188,6 +193,9 @@ class VZTemplateAutoComplete(sublime_plugin.EventListener):
         return (sugs, sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS)
 
     def on_selection_modified(self, view):
+        if not view.match_selector(0, "source.vzt"):
+            return
+
         for s in view.sel():
             location = s.end()
             if view.match_selector(location, "string.vzt"):
@@ -199,6 +207,9 @@ class VZTemplateAutoComplete(sublime_plugin.EventListener):
                 view.run_command('hide_auto_complete')
 
     def on_post_text_command(self, view, command_name, args):
+        if not view.match_selector(0, "source.vzt"):
+            return
+
         if command_name == 'commit_completion':
             for s in view.sel():
                 location = s.end()
