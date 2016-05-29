@@ -68,24 +68,10 @@ contexts:
     - match: '"'
       scope: punctuation.definition.string.end.vzt
       pop: true
-    - match: '\$\{'
-      scope: punctuation.definition.expression.begin.vzt
-      push: expression
-
-  expression:
-    - meta_include_prototype: false
-    - meta_scope: constant.other.expression.vzt
-    - match: '{'
-      push: expression_object
-    - match: '}'
-      scope: punctuation.definition.expression.end.vzt
-      pop: true
-    - match: '(?=")'
-      scope: invalid.end.expression.vzt
-      pop: true
-    - match: '\n'
-      scope: invalid.string.vzt
-      pop: true
+    - match: '\$\{[^}"]*}'
+      scope: constant.other.expression.vzt
+    - match: '\$\{[^}"]*'
+      scope: invalid.unclosed.expression.vzt
 
   expression_object:
     - match: '}'
