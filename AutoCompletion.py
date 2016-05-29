@@ -21,10 +21,10 @@ colors = [
     "transparent"
 ]
 
-image_snippet = '"${1/([^$].*)|(.*)/(?1:O2O.bundle\/)/}${1:name}"$0'
+image_snippet = '${1/([^$].*)|(.*)/(?1:"O2O.bundle\/:")/}${1:name}"'
 
 key_values = {
-    "sectioned": PropertyType.Bool,
+    "sectioned": 'true',
     "native": PropertyType.Text,
     "controller": PropertyType.Text,
     "config": PropertyType.Map,
@@ -58,12 +58,12 @@ key_values = {
     "padding-bottom": PropertyType.Number,
     "spacing": PropertyType.Number,
     "line-spacing": PropertyType.Number,
-    "fixed": PropertyType.Bool,
-    "wrap": PropertyType.Bool,
-    "gone": PropertyType.Bool,
-    "hidden": PropertyType.Bool,
-    "clip": PropertyType.Bool,
-    "user-interaction-enabled": PropertyType.Bool,
+    "fixed": 'true',
+    "wrap": 'true',
+    "gone": '"\${$1}"',
+    # "hidden": PropertyType.Bool,
+    "clip": 'true',
+    "user-interaction-enabled": 'false',
     "border-width": PropertyType.Number,
     "corner-radius": PropertyType.Number,
     "background-color": colors,
@@ -71,7 +71,7 @@ key_values = {
     "repeat": PropertyType.Number,
     "vars": PropertyType.Map,
     "open-page-log": PropertyType.Map,
-    "action": ('action', '{$0}'),
+    "action": '{$1}',
     "completion": PropertyType.Map,
     "log": PropertyType.Map,
     "update-state": PropertyType.Map,
@@ -84,7 +84,7 @@ key_values = {
     "seed": PropertyType.Text,
     "params": PropertyType.Array,
     "action-id": ["clicked", "openPage"],
-    "children": ('children []', '[\n\t{\n\t\t$0\n\t}\n]'),
+    "children": '[\n\t{\n\t\t$1\n\t}\n]',
 
     "text": PropertyType.Text,
     "color": colors,
@@ -95,18 +95,18 @@ key_values = {
     "line-break-mode": ["word", "char", "clip", "truncating-head", "truncating-middle", "truncating-tail"],
     "lines": PropertyType.Number,
 
-    "image": ('image', image_snippet),
+    "image": image_snippet,
     "image-url": PropertyType.Text,
-    "error-image": ('error-image', image_snippet),
+    "error-image": image_snippet,
     "content-mode": ["center", "top", "bottom", "left", "right", "top-left", "top-right", "bottom-left", "bottom-right", "scale-to-fill", "scale-aspect-fit", "scale-aspect-fill"],
 
     "paging": PropertyType.Bool,
-    "scroll-enabled": PropertyType.Bool,
+    "scroll-enabled": 'false',
     "scroll-direction": ["none", "horizontal", "vertical", "both"],
 
-    "infinite-loop": PropertyType.Bool,
-    "auto-scroll": PropertyType.Number,
-    "page-control": PropertyType.Bool,
+    "infinite-loop": 'true',
+    "auto-scroll": 'true',
+    "page-control": 'true',
     "page-control-color": colors,
     "page-control-selected-color": colors,
     "page-control-scale": PropertyType.Number,
@@ -146,12 +146,14 @@ class CompletionCommittedCommand(sublime_plugin.TextCommand):
                 snippet = None
                 if isinstance(value, tuple) and len(value) >= 2:
                     snippet = value[1]
+                elif isinstance(value, str):
+                    snippet = value
                 elif value == PropertyType.Map:
-                    snippet = '{\n\t$0\n}'
+                    snippet = '{\n\t$1\n}'
                 elif value == PropertyType.Array:
-                    snippet = '[$0]'
+                    snippet = '[$1]'
                 elif value == PropertyType.Text or isinstance(value, list) and len(value) > 1:
-                    snippet = '"$0"'
+                    snippet = '"$1"'
 
                 if snippet is not None:
                     view.run_command('insert_snippet', { 'contents': snippet })
@@ -178,7 +180,7 @@ class VZTemplateAutoComplete(sublime_plugin.EventListener):
 
         sugs = []
         if view.match_selector(locations[0], "object.vzt"):
-            sugs = [(key_values[p][0] if isinstance(key_values[p], tuple) else p, '"' + p) for p in key_values]
+            sugs = [(p, '"' + p) for p in key_values]
         elif view.match_selector(locations[0], "key.string.vzt"):
             sugs = [(p,) for p in key_values]
         elif view.match_selector(locations[0], "string.vzt"):
@@ -205,6 +207,18 @@ class VZTemplateAutoComplete(sublime_plugin.EventListener):
                         view.run_command('auto_complete')
             elif not view.match_selector(location, "key.string.vzt") and not view.match_selector(location, "object.vzt"):
                 view.run_command('hide_auto_complete')
+
+    def on_text_command(self, view, command_name, args):
+        if not view.match_selector(0, "source.vzt"):
+            return
+
+        if command_name == 'left_delete' or command_name == 'right_delete':
+            forward = command_name == 'right_delete'
+            for s in view.sel():
+                point = s.end()
+                word_region = view.word(point)
+                if view.match_selector(word_region.begin(), "constant.language.vzt"):
+                    return ('delete_word', { 'forward': forward })
 
     def on_post_text_command(self, view, command_name, args):
         if not view.match_selector(0, "source.vzt"):
