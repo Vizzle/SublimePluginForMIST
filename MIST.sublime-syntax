@@ -68,8 +68,10 @@ contexts:
     - match: '"'
       scope: punctuation.definition.string.end.vzt
       pop: true
-    - match: '\$\{[^}"]*}'
+    - match: '\$\{([^}"]*)}'
       scope: constant.other.expression.vzt
+      captures:
+        1: constant.expression.vzt
     - match: '\$\{[^}"]*'
       scope: invalid.unclosed.expression.vzt
 

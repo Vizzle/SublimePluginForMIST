@@ -203,11 +203,14 @@ class VZTemplateAutoComplete(sublime_plugin.EventListener):
         elif view.match_selector(locations[0], "key.string.vzt"):
             sugs = [(p,) for p in key_values]
         elif view.match_selector(locations[0], "string.vzt"):
-            key = self.keyAtPoint(view, locations[0]-len(prefix))
-            if key is not None and key in key_values:
-                value = key_values[key]
-                if isinstance(value, list):
-                    sugs = [(p,) for p in value]
+            if view.match_selector(locations[0], "constant.other.expression.vzt"):
+                return None
+            else:
+                key = self.keyAtPoint(view, locations[0]-len(prefix))
+                if key is not None and key in key_values:
+                    value = key_values[key]
+                    if isinstance(value, list):
+                        sugs = [(p,) for p in value]
         elif view.match_selector(locations[0], "value.object.vzt"):
             sugs = []
 
