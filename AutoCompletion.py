@@ -66,7 +66,12 @@ key_values = {
     "user-interaction-enabled": 'false',
     "border-width": PropertyType.Number,
     "corner-radius": PropertyType.Number,
+    "corner-radius-top-left": PropertyType.Number,
+    "corner-radius-top-right": PropertyType.Number,
+    "corner-radius-bottom-left": PropertyType.Number,
+    "corner-radius-bottom-right": PropertyType.Number,
     "background-color": colors,
+    "highlight-background-color": colors,
     "border-color": colors,
     "repeat": PropertyType.Number,
     "vars": PropertyType.Map,
@@ -86,6 +91,8 @@ key_values = {
     "action-id": ["clicked", "openPage"],
     "children": '[\n\t{\n\t\t$1\n\t}\n]',
 
+    "include": PropertyType.Text,
+
     "text": PropertyType.Text,
     "color": colors,
     "font-size": PropertyType.Number,
@@ -95,9 +102,21 @@ key_values = {
     "line-break-mode": ["word", "char", "clip", "truncating-head", "truncating-middle", "truncating-tail"],
     "lines": PropertyType.Number,
 
+    "title": PropertyType.Text,
+    "title-color": colors,
+    "background-image": image_snippet,
+    "enlarge-size": PropertyType.Number,
+
+    "normal": PropertyType.Text,
+    "highlighted": PropertyType.Text,
+    "disabled": PropertyType.Text,
+    "selected": PropertyType.Text,
+
     "image": image_snippet,
     "image-url": PropertyType.Text,
     "error-image": image_snippet,
+    "download-scale": PropertyType.Number,
+    "business": ["O2O_common", "O2O_home", "O2O_search", "O2O_detail", "O2O_detail_foodie", "O2O_detail_dish", "O2O_album_large", "O2O_album_small", "O2O_dish_large", "O2O_dish_small", "O2O_comment_large", "O2O_comment_small", "O2O_voucher"],
     "content-mode": ["center", "top", "bottom", "left", "right", "top-left", "top-right", "bottom-left", "bottom-right", "scale-to-fill", "scale-aspect-fit", "scale-aspect-fill"],
 
     "paging": PropertyType.Bool,

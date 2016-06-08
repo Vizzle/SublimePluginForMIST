@@ -3,6 +3,6 @@
     "tab_size": 2,
     "scroll_past_end": true,
     "trim_trailing_white_space_on_save": true,
-    "word_separators": "\"{}[],:./'\\;<>?`~!@^&*()-_=+",
+    "word_separators": "\"{}[],:./'\\;<>?`~!@^&*()-=+",
     "auto_complete_cycle": true,
 }
