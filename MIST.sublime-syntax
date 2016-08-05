@@ -1,7 +1,7 @@
 %YAML1.2
 ---
 # See http://www.sublimetext.com/docs/3/syntax.html
-file_extensions: [json, html]
+file_extensions: [json, mist]
 scope: source.vzt
 contexts:
   prototype: 

@@ -17,7 +17,7 @@ class MistSwitchCommand(sublime_plugin.TextCommand):
         self.folder, file = os.path.split(self.view.file_name())
         fileName, fileExt = os.path.splitext(file)
 
-        if fileExt == '.html':
+        if fileExt == '.mist':
             if self.view.find(r'"template"\s*:\s*\{', 0).begin() < 0:
                 StatusBar.set(self.view, 'this is not a valid MIST template file!')
                 return
@@ -84,7 +84,7 @@ class MistSwitchCommand(sublime_plugin.TextCommand):
                     result = re.search(r'"blockId"\s*:\s*"KOUBEI@([^"\n]*)"', s[left[1]:right[1]])
                     if result is not None:
                         blockId = result.group(1)
-                        self.results = [(blockId + '.html',)]
+                        self.results = [(blockId + '.mist',)]
                         self.switchTo(0)
                         return
 
@@ -92,7 +92,7 @@ class MistSwitchCommand(sublime_plugin.TextCommand):
             for result in re.finditer(r'"blockId"\s*:\s*"KOUBEI@([^"\n]*)"', s):
                 r = result.group(1)
                 if r not in self.results:
-                    self.results.append((r + '.html',))
+                    self.results.append((r + '.mist',))
 
             if len(self.results) == 0:
                 StatusBar.set(self.view, 'can not find any blockId')

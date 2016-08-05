@@ -31,7 +31,7 @@ key_values = {
     "state": PropertyType.Map,
     "template": PropertyType.Map,
 
-    "type": ["node", "stack", "text", "image", "button", "scroll", "paging"],
+    "type": ["node", "stack", "text", "image", "button", "scroll", "paging", "indicator", "line"],
     "direction": ["horizontal", "vertical", "horizontal-reverse", "vertical-reverse"],
     "flex-basis": ["auto", "content"],
     "flex-grow": PropertyType.Number,
@@ -73,9 +73,14 @@ key_values = {
     "background-color": colors,
     "highlight-background-color": colors,
     "border-color": colors,
+    "dash-length": PropertyType.Number,
+    "space-length": PropertyType.Number,
     "repeat": PropertyType.Number,
     "vars": PropertyType.Map,
-    "open-page-log": PropertyType.Map,
+    "exposure-log": PropertyType.Map,
+    "tag": PropertyType.Text,
+    "spm-tag": PropertyType.Text,
+    "async-display": 'true',
     "action": '{$1}',
     "completion": PropertyType.Map,
     "log": PropertyType.Map,
@@ -85,10 +90,9 @@ key_values = {
     "source": PropertyType.Text,
     "selector": PropertyType.Text,
     "condition": PropertyType.Text,
-    "id": PropertyType.Text,
     "seed": PropertyType.Text,
     "params": PropertyType.Array,
-    "action-id": ["clicked", "openPage"],
+    "action-id": ["clicked", "exposure", "slided"],
     "children": '[\n\t{\n\t\t$1\n\t}\n]',
 
     "include": PropertyType.Text,
@@ -204,7 +208,7 @@ class VZTemplateAutoComplete(sublime_plugin.EventListener):
             sugs = [(p,) for p in key_values]
         elif view.match_selector(locations[0], "string.vzt"):
             if view.match_selector(locations[0], "constant.other.expression.vzt"):
-                return None
+                return [(p,) for p in ['_index_', '_width_', 'config', 'state', '_data_', '_response_', '_prev_', '_next_']]
             else:
                 key = self.keyAtPoint(view, locations[0]-len(prefix))
                 if key is not None and key in key_values:
@@ -212,7 +216,7 @@ class VZTemplateAutoComplete(sublime_plugin.EventListener):
                     if isinstance(value, list):
                         sugs = [(p,) for p in value]
         elif view.match_selector(locations[0], "value.object.vzt"):
-            sugs = []
+            pass
 
         return (sugs, sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS)
 
