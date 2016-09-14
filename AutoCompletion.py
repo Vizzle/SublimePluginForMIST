@@ -21,7 +21,7 @@ colors = [
     "transparent"
 ]
 
-image_snippet = '${1/([^$].*)|(.*)/(?1:"O2O.bundle\/:")/}${1:name}"'
+image_snippet = ["O2O.bundle/", "ALPPass.bundle/", "APCommonUI.bundle/"] #'${1/([^$].*)|(.*)/(?1:"O2O.bundle\/:")/}${1:name}"'
 
 key_values = {
     "sectioned": 'true',
@@ -76,7 +76,9 @@ key_values = {
     "dash-length": PropertyType.Number,
     "space-length": PropertyType.Number,
     "repeat": PropertyType.Number,
-    "vars": PropertyType.Map,
+    "vars": '{$1}',
+    "ref": '"\${$1}"',
+    "view-class": PropertyType.Text,
     "exposure-log": PropertyType.Map,
     "tag": PropertyType.Text,
     "spm-tag": PropertyType.Text,
@@ -94,13 +96,16 @@ key_values = {
     "params": PropertyType.Array,
     "action-id": ["clicked", "exposure", "slided"],
     "children": '[\n\t{\n\t\t$1\n\t}\n]',
+    'is-accessibility-element': 'true',
+    'accessibility-label': PropertyType.Text,
 
     "include": PropertyType.Text,
 
     "text": PropertyType.Text,
+    "html-text": PropertyType.Text,
     "color": colors,
     "font-size": PropertyType.Number,
-    "font-style": ["normal", "bold", "italic", "bold-italic"],
+    "font-style": ["ultra-light", "thin", "light", "normal", "medium", "bold", "heavy", "black", "italic", "bold-italic"],
     "font-name": PropertyType.Text,
     "alignment": ["natural", "justify", "left", "center", "right"],
     "line-break-mode": ["word", "char", "clip", "truncating-head", "truncating-middle", "truncating-tail"],
@@ -128,7 +133,7 @@ key_values = {
     "scroll-direction": ["none", "horizontal", "vertical", "both"],
 
     "infinite-loop": 'true',
-    "auto-scroll": 'true',
+    "auto-scroll": PropertyType.Number,
     "page-control": 'true',
     "page-control-color": colors,
     "page-control-selected-color": colors,
@@ -181,7 +186,7 @@ class CompletionCommittedCommand(sublime_plugin.TextCommand):
                 if snippet is not None:
                     view.run_command('insert_snippet', { 'contents': snippet })
         elif view.match_selector(point, "string.vzt"):
-            if view.substr(point) == '"':
+            if view.substr(point) == '"' and view.substr(point-1) != '/':
                 point += 1
                 view.sel().clear()
                 view.sel().add(sublime.Region(point, point))
