@@ -21,7 +21,7 @@ colors = [
     "transparent"
 ]
 
-image_snippet = ["O2O.bundle/", "ALPPass.bundle/", "APCommonUI.bundle/"] #'${1/([^$].*)|(.*)/(?1:"O2O.bundle\/:")/}${1:name}"'
+image_snippet = ["O2O.bundle/", "ALPPass.bundle/", "APCommonUI.bundle/", "O2OPurchase.bundle/"] #'${1/([^$].*)|(.*)/(?1:"O2O.bundle\/:")/}${1:name}"'
 
 key_values = {
     "sectioned": 'true',
@@ -105,6 +105,8 @@ key_values = {
     "html-text": PropertyType.Text,
     "color": colors,
     "font-size": PropertyType.Number,
+    "adjusts-font-size": 'true',
+    "mini-scale-factor": PropertyType.Number,
     "font-style": ["ultra-light", "thin", "light", "normal", "medium", "bold", "heavy", "black", "italic", "bold-italic"],
     "font-name": PropertyType.Text,
     "alignment": ["natural", "justify", "left", "center", "right"],
