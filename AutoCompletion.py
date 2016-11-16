@@ -1,7 +1,7 @@
-import sublime, sublime_plugin, re
+import sublime, sublime_plugin, re, os
 
 class PropertyType:
-    Number, Bool, Text, Array, Map = range(0 ,5)
+    Number, Bool, Text, Array, Map, Image = range(0, 6)
 
 colors = [
     "black",
@@ -21,7 +21,7 @@ colors = [
     "transparent"
 ]
 
-image_snippet = ["O2O.bundle/", "ALPPass.bundle/", "APCommonUI.bundle/", "O2OPurchase.bundle/"] #'${1/([^$].*)|(.*)/(?1:"O2O.bundle\/:")/}${1:name}"'
+bundles = ["O2O.bundle/", "ALPPass.bundle/", "APCommonUI.bundle/", "O2OPurchase.bundle/"] #'${1/([^$].*)|(.*)/(?1:"O2O.bundle\/:")/}${1:name}"'
 
 key_values = {
     "sectioned": 'true',
@@ -73,6 +73,7 @@ key_values = {
     "background-color": colors,
     "highlight-background-color": colors,
     "border-color": colors,
+    "alpha": PropertyType.Number,
     "dash-length": PropertyType.Number,
     "space-length": PropertyType.Number,
     "repeat": PropertyType.Number,
@@ -101,6 +102,7 @@ key_values = {
     'accessibility-label': PropertyType.Text,
     
     "animation": PropertyType.Map,
+    "key": PropertyType.Text,
     "end": '{$1}',
     "start": '{$1}',
     "key-path": ["anchorPoint.x", "anchorPoint.y", "backgroundColor", "borderColor", "borderWidth", "bounds.origin", "bounds.origin.x", "bounds.origin.y", "bounds.size", "bounds.size.width", "bounds.size.height", "contents", "contentsRect.origin", "contentsRect.origin.x", "contentsRect.origin.y", "contentsRect.size", "contentsRect.size.width", "contentsRect.size.height", "cornerRadius", "doubleSided", "hidden", "masksToBounds", "opacity", "position.x", "position.y", "shadowColor", "shadowOffset.x", "shadowOffset.y", "shadowOpacity", "shadowRadius", "sublayerTransform.rotation.x", "sublayerTransform.rotation.y", "sublayerTransform.rotation.z", "sublayerTransform.rotation", "sublayerTransform.scale.x", "sublayerTransform.scale.y", "sublayerTransform.scale.z", "sublayerTransform.scale", "sublayerTransform.translation.x", "sublayerTransform.translation.y", "sublayerTransform.translation.z", "transform.rotation.x", "transform.rotation.y", "transform.rotation.z", "transform.rotation", "transform.scale.x", "transform.scale.y", "transform.scale.z", "transform.scale", "transform.translation.x", "transform.translation.y", "transform.translation.z", "zPosition"],
@@ -114,6 +116,7 @@ key_values = {
     "speed": PropertyType.Number,
     "time-offset": PropertyType.Number,
     "timing-function": ["linear", "easeIn", "easeOut", "easeInEaseOut"],
+    "timing-functions": PropertyType.Array,
     "auto-reverses": "true",
     "delay": PropertyType.Number,
     "animations": PropertyType.Array,
@@ -138,7 +141,7 @@ key_values = {
 
     "title": PropertyType.Text,
     "title-color": colors,
-    "background-image": image_snippet,
+    "background-image": PropertyType.Image,
     "enlarge-size": PropertyType.Number,
 
     "normal": PropertyType.Text,
@@ -146,9 +149,9 @@ key_values = {
     "disabled": PropertyType.Text,
     "selected": PropertyType.Text,
 
-    "image": image_snippet,
+    "image": PropertyType.Image,
     "image-url": PropertyType.Text,
-    "error-image": image_snippet,
+    "error-image": PropertyType.Image,
     "download-scale": PropertyType.Number,
     "business": ["O2O_common", "O2O_home", "O2O_search", "O2O_detail", "O2O_detail_foodie", "O2O_detail_dish", "O2O_album_large", "O2O_album_small", "O2O_dish_large", "O2O_dish_small", "O2O_comment_large", "O2O_comment_small", "O2O_voucher"],
     "content-mode": ["center", "top", "bottom", "left", "right", "top-left", "top-right", "bottom-left", "bottom-right", "scale-to-fill", "scale-aspect-fit", "scale-aspect-fill"],
@@ -207,6 +210,8 @@ class CompletionCommittedCommand(sublime_plugin.TextCommand):
                     snippet = '[$1]'
                 elif value == PropertyType.Text or isinstance(value, list) and len(value) > 1:
                     snippet = '"$1"'
+                elif value == PropertyType.Image:
+                    snippet = '"$1"'
 
                 if snippet is not None:
                     view.run_command('insert_snippet', { 'contents': snippet })
@@ -217,8 +222,55 @@ class CompletionCommittedCommand(sublime_plugin.TextCommand):
                 view.sel().add(sublime.Region(point, point))
 
 property_name_regex = re.compile(r'"(?P<prop_name>[-a-z]+)"\s*:\s*$')
+image_regex = re.compile(r'([^/@]+)(@[23]x)?\.(png|jpg|gif)$')
 
 class VZTemplateAutoComplete(sublime_plugin.EventListener):
+    def findRootPath(self):
+        dir = os.path.dirname(os.path.realpath(self.view.file_name()))
+        print(dir)
+        while len(dir) > 1:
+            if os.path.isdir(dir + '/.git'):
+                return dir
+            dir = os.path.dirname(dir)
+        return None
+
+    def isXcodeProjectDir(self, dir):
+        return os.path.exists(dir + '/' + os.path.basename(dir) + '.xcodeproj')
+
+    def getXcodeProjects(self, dir):
+        projs = []
+        for p in os.listdir(dir):
+            path = dir + '/' + p
+            if os.path.isdir(path) and self.isXcodeProjectDir(path):
+                projs.append(path)
+        return projs
+
+    def getImages(self):
+        rootPath = self.findRootPath()
+
+        if rootPath is None:
+            print('目录无效')
+            return
+
+        projDirs = self.getXcodeProjects(rootPath)
+        if len(projDirs) == 0:
+            print('找不到工程')
+            return None
+
+        images = []
+        for p in projDirs:
+            bundle = os.path.basename(p) + '.bundle/'
+            resDir = p + '/Resources/' + bundle
+            if not os.path.isdir(resDir):
+                continue
+            for f in os.listdir(resDir):
+                r = image_regex.search(f)
+                if r:
+                    imageName = r.group(1)
+                    imageName = bundle + (imageName if r.group(3) == 'png' else r.group(0))
+                    images.append(imageName)
+        return list(set(images))
+
     def keyAtPoint(self, view, point):
         r = view.line(point)
         line = view.substr(r)[:point-r.begin()-1]
@@ -245,6 +297,9 @@ class VZTemplateAutoComplete(sublime_plugin.EventListener):
                     value = key_values[key]
                     if isinstance(value, list):
                         sugs = [(p,) for p in value]
+                    elif value == PropertyType.Image:
+                        self.view = view
+                        sugs = [(p,) for p in self.getImages() + bundles]
         elif view.match_selector(locations[0], "value.object.vzt"):
             pass
 
