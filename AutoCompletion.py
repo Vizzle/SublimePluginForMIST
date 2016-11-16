@@ -227,7 +227,6 @@ image_regex = re.compile(r'([^/@]+)(@[23]x)?\.(png|jpg|gif)$')
 class VZTemplateAutoComplete(sublime_plugin.EventListener):
     def findRootPath(self):
         dir = os.path.dirname(os.path.realpath(self.view.file_name()))
-        print(dir)
         while len(dir) > 1:
             if os.path.isdir(dir + '/.git'):
                 return dir
@@ -314,7 +313,7 @@ class VZTemplateAutoComplete(sublime_plugin.EventListener):
             if view.match_selector(location, "string.vzt"):
                 if view.substr(location-1) == '"':
                     key = self.keyAtPoint(view, location)
-                    if key is not None and key in key_values and isinstance(key_values[key], list) and len(key_values[key]) > 1:
+                    if key is not None and key in key_values and (isinstance(key_values[key], list) and len(key_values[key]) > 1 or key_values[key] == PropertyType.Image):
                         view.run_command('auto_complete')
             elif not view.match_selector(location, "key.string.vzt") and not view.match_selector(location, "object.vzt"):
                 view.run_command('hide_auto_complete')
