@@ -222,11 +222,11 @@ class CompletionCommittedCommand(sublime_plugin.TextCommand):
                 view.sel().add(sublime.Region(point, point))
 
 property_name_regex = re.compile(r'"(?P<prop_name>[-a-z]+)"\s*:\s*$')
-image_regex = re.compile(r'([^/@]+)(@[23]x)?\.(png|jpg|gif)$')
+image_regex = re.compile(r'([^/]+?)(@[23]x)?\.(png|jpg|gif)$')
 
 class VZTemplateAutoComplete(sublime_plugin.EventListener):
-    def findRootPath(self):
-        dir = os.path.dirname(os.path.realpath(self.view.file_name()))
+    def findRootPath(self, path):
+        dir = path if os.path.isdir(path) else os.path.dirname(os.path.realpath(file))
         while len(dir) > 1:
             if os.path.isdir(dir + '/.git'):
                 return dir
@@ -245,16 +245,24 @@ class VZTemplateAutoComplete(sublime_plugin.EventListener):
         return projs
 
     def getImages(self):
-        rootPath = self.findRootPath()
+        path = self.view.file_name()
+        if path is None:
+            folders = self.view.window().folders()
+            if len(folders) > 0:
+                path = folders[0]
+            else:
+                return []
+
+        rootPath = self.findRootPath(path)
 
         if rootPath is None:
             print('目录无效')
-            return
+            return []
 
         projDirs = self.getXcodeProjects(rootPath)
         if len(projDirs) == 0:
             print('找不到工程')
-            return None
+            return []
 
         images = []
         for p in projDirs:
