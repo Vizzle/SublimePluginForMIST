@@ -1,11 +1,10 @@
 [
     {
-        "keys": ["super+shift+,"],
-        "command": "mist_switch"
+        "keys": ["super+shift+m"],
+        "command": "mist_open_quick_menu"
     },
     {
-        "keys": ["super+shift+l"],
-        "command": "mist_switch",
-        "args": { "is_list": true }
+        "keys": ["alt+enter"],
+        "command": "auto_complete"
     }
 ]
