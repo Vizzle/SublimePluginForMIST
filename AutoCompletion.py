@@ -226,7 +226,7 @@ image_regex = re.compile(r'([^/]+?)(@[23]x)?\.(png|jpg|gif)$')
 
 class VZTemplateAutoComplete(sublime_plugin.EventListener):
     def findRootPath(self, path):
-        dir = path if os.path.isdir(path) else os.path.dirname(os.path.realpath(file))
+        dir = path if os.path.isdir(path) else os.path.dirname(os.path.realpath(path))
         while len(dir) > 1:
             if os.path.isdir(dir + '/.git'):
                 return dir
