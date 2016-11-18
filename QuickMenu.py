@@ -122,7 +122,13 @@ class MistOpenQuickMenuCommand(sublime_plugin.TextCommand):
     def jumpToFile(self, file, point = -1):
         if not os.path.isabs(file):
             file = os.path.join(self.folder, file)
+        
         window = self.view.window()
+        view = window.find_open_file(file)
+        if view:
+            window.focus_view(view)
+            return
+
         if os.path.exists(file):
             if not os.path.isfile(file):
                 sublime.message_dialog("'%s' 不是一个有效的文件")
