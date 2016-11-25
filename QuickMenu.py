@@ -10,14 +10,19 @@ from .StatusBar import StatusBar
 
 class MistMoveCaretCommand(sublime_plugin.TextCommand):
 
-    def run(self, edit, point):
+    def run(self, _edit, point, region=None):
         view = self.view
         if view.is_loading():
             sublime.set_timeout_async(lambda: view.run_command(
                 'mist_move_caret', {'point': point}), 50)
             return
-        view.sel().clear()
-        view.sel().add(sublime.Region(point, point))
+
+        sel = view.sel()
+        if region and len(sel) > 0 and sublime.Region(*region).contains(sel[0]):
+            point = sel[0]
+        else:
+            view.sel().clear()
+            view.sel().add(sublime.Region(point, point))
         sublime.set_timeout_async(lambda: view.show(point), 50)
 
 
@@ -46,7 +51,8 @@ class MistOpenQuickMenuCommand(sublime_plugin.TextCommand):
         return self._content
 
     def run(self, edit):
-        self.file = self.view.file_name()
+        view = self.view.window().active_view()
+        self.file = view.file_name()
         if self.file is None:
             sublime.message_dialog("请先保存到文件")
             return
@@ -74,7 +80,7 @@ class MistOpenQuickMenuCommand(sublime_plugin.TextCommand):
                 "Jump to Template File", self.jump_to_template_file))
 
         if len(commands) > 0:
-            self.view.window().show_quick_panel(
+            view.window().show_quick_panel(
                 [c.title for c in commands], lambda i: commands[i].callback() if i >= 0 else None)
 
     def callback(self):
@@ -97,12 +103,14 @@ class MistOpenQuickMenuCommand(sublime_plugin.TextCommand):
                 text = the_file.read().decode('utf-8')
                 i = 1
                 for result in re.finditer('"blockId"\\s*:\\s*"KOUBEI@%s"' % self.file_name, text):
-                    results.append((filename, result.start(), "%s #%d" %
-                                    (filename, i) if i > 1 else filename))
+                    show_name = "%s #%d" % (filename, i) if i > 1 else filename
+                    point = result.start()
+                    region = next(self.scope_generator(result.start(), text), None)
+                    results.append((filename, show_name, point, region))
                     i += 1
 
         jump_to_index = lambda i: self.jump_to_file(
-            results[i][0], results[i][1]) if i >= 0 else None
+            results[i][0], results[i][2], results[i][3]) if i >= 0 else None
 
         if len(results) == 0:
             StatusBar.set(self.view, "未找到使用模版 '%s' 的数据文件" % self.file_name)
@@ -110,7 +118,7 @@ class MistOpenQuickMenuCommand(sublime_plugin.TextCommand):
             jump_to_index(0)
         else:
             self.view.window().show_quick_panel(
-                [r[2] for r in results], jump_to_index)
+                [r[1] for r in results], jump_to_index)
 
     def jump_to_template_file(self):
         if self.file_ext == '.js':
@@ -130,8 +138,16 @@ class MistOpenQuickMenuCommand(sublime_plugin.TextCommand):
         blocks = self.get_all_blocks()
         names = ["%s #%d" % (b["id"], b["index"]) if "index" in b else b[
             "id"] for b in blocks]
-        self.view.window().show_quick_panel(names, lambda i: self.view.run_command(
-            'mist_move_caret', {'point': blocks[i]["point"]}) if i >= 0 else None)
+        old_sel = [s for s in self.view.sel()]
+        viewport = self.view.viewport_position()
+        def _on_selected(i):
+            if i < 0:
+                self.view.sel().clear()
+                self.view.sel().add_all(old_sel)
+                self.view.set_viewport_position(viewport)
+        def _on_highlighted(i):
+            self.view.run_command('mist_move_caret', {'point': blocks[i]["point"]})
+        self.view.window().show_quick_panel(names, _on_selected, 0, 0, _on_highlighted)
 
     def jump_to_js_file(self):
         file_name = None
@@ -145,7 +161,8 @@ class MistOpenQuickMenuCommand(sublime_plugin.TextCommand):
             file_name += ".js"
         self.jump_to_file(file_name)
 
-    def jump_to_file(self, file, point=-1):
+    def jump_to_file(self, file, point=-1, region=None):
+        print('jump', file, point, region)
         if not os.path.isabs(file):
             file = os.path.join(self.folder, file)
 
@@ -164,21 +181,22 @@ class MistOpenQuickMenuCommand(sublime_plugin.TextCommand):
             window.run_command('open_file', {"file": file})
         if point >= 0:
             view = window.active_view()
-            view.run_command('mist_move_caret', {'point': point})
+            view.run_command('mist_move_caret', {'point': point, 'region': region})
 
     def get_all_blocks(self):
         blocks = []
         for match in re.finditer(r'"blockId"\s*:\s*"(KOUBEI@[^"\n]*)"', self.content):
             block = {"id": match.group(1), "point": match.start(1)}
+            block["region"] = sublime.Region(*next(self.scope_generator(match.start(1))))
             found = next(filter(lambda b, a=block: b["id"] == a["id"], reversed(blocks)), None)
             if found:
                 block["index"] = found["index"] + 1 if "index" in found else 2
             blocks.append(block)
         return blocks
 
-    def scope_generator(self, point):
-        length = self.view.size()
-        text = self.content
+    def scope_generator(self, point, _text=None):
+        text = _text if _text else self.content
+        length = len(text)
 
         def _left_generator():
             i = point - 1
@@ -215,6 +233,8 @@ class MistOpenQuickMenuCommand(sublime_plugin.TextCommand):
             yield (left, next(right_itr, length))
 
     def block_id_at_caret(self):
+        if len(self.view.sel()) == 0:
+            return None
         text = self.content
         pos = self.view.sel()[0].b
 
