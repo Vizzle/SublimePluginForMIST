@@ -42,8 +42,8 @@ class SyncScriptCommand(sublime_plugin.TextCommand):
 			sublime.set_timeout_async(lambda:templateView.run_command('save'), 50)
 			
 		else:
-			replaceJSInTemplate(template, jsContent)
-			print('当前脚本已同步至 ' + template)
+			if os.path.isfile(template):
+				replaceJSInTemplate(template, jsContent)
 
 def jsmin(js):
 	ins = StringIO(js)
@@ -55,9 +55,6 @@ def jsmin(js):
 	return str
 
 def replaceJSInTemplate(templatePath, jsContent):
-	if not os.path.isfile(templatePath):
-		sublime.message_dialog("没有找到模板文件 " + templatePath)
-
 	originContent = ''
 	originScript = ''
 	with open(templatePath, 'r', encoding='utf-8') as templateFile:
@@ -73,6 +70,8 @@ def replaceJSInTemplate(templatePath, jsContent):
 		newContent = originContent.replace(originScript, newScript)
 		with open(templatePath, 'w', encoding='utf-8') as templateFile:
 			templateFile.write(newContent)
+
+	print('当前脚本已同步至 ' + template)
 
 # jsminify
 
