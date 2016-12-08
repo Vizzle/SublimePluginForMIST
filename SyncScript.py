@@ -71,7 +71,7 @@ def replaceJSInTemplate(templatePath, jsContent):
 		with open(templatePath, 'w', encoding='utf-8') as templateFile:
 			templateFile.write(newContent)
 
-	print('当前脚本已同步至 ' + template)
+	print('当前脚本已同步至 ' + templatePath)
 
 # jsminify
 
