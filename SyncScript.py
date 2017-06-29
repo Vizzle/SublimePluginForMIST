@@ -18,7 +18,7 @@ class SyncScriptCommand(sublime_plugin.TextCommand):
 		if not view.file_name().endswith('.js'):
 			return
 
-		jsContent = jsmin(view.substr(Region(0, view.size()))).replace('\n', '\\n').replace('"', '\\"').replace('\\', '\\\\')
+		jsContent = jsmin(view.substr(Region(0, view.size()))).replace('\n', '\\n').replace('\\', '\\\\').replace('"', '\\"')
 		if not jsContent:
 			return
 
