@@ -113,6 +113,7 @@ KEY_VALUES = {
     "on-display-once": '{$1}',
     "on-complete": '{$1}',
     "on-create": '{$1}',
+    "on-create-once": '{$1}',
     "on-switch": '{$1}',
     "updateState:": PropertyType.Map,
     "openUrl:": PropertyType.Number,
